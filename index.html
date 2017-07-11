@@ -1,0 +1,645 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/beige.css">
+		<link rel="stylesheet" href="css/theme/custom.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!-- d3 library import from the web -->
+		<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+		<script src="d3/d3.min.js"></script>
+
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<section data-background-image="img/foo.png">
+					<h1 class='title'>Using Baselines for Algorithm Audits</h1>
+					<!-- <br> -->
+					<h3 class='title'>Jennifer A. Stark, Ph.D.</h3>
+					<h3 class='title'>Nicholas Diakopoulos, Ph.D.</h3>
+					<!-- <img src='img/logo.jpg' style="width: 10%; height: 10%; opacity:0.7"/><img src='img/merrill.jpg' style="width: 10%; height: 10	%; opacity:0.7"/> -->
+				</section>
+
+				<!-- <section>
+					<h3 class='title'>Follow Along:</h3>
+					<p>https://jastark.github.io/DataJConf2017/</p>
+					<h3 class='title'>Link from Twitter:</h3>
+					<p>@_jastark <span style="color: #59CBE8;">#DataJConf</span></p>
+				</section> -->
+
+				<section>
+					<h1 class="science">Science!</h1>
+					<p class="fragment fade-up">Lab-Coat Science</p>
+					<p class="fragment fade-up">versus</p>
+					<p class="fragment fade-up">Social Science</p>
+				</section>
+
+				<section>
+
+					<section>
+						<h3 class='title'>What we wanted to do:</h3>
+						<p>Audit Google's main results page for <strong class="highlight-2"> biased representation</strong> of 2016 US presidential candidates
+						<strong class="highlight-2">Hillary Clinton</strong>
+						 &amp; <strong class="highlight-2">Donald Trump</strong></p>
+						 <br>
+						<li class="fragment fade-up">Appearance of each candidate (gender bias?)</li>
+						<li class="fragment fade-up">Political leaning of news source of the image (political bias?)</li>
+
+					</section>
+
+					<section data-background-video="img/HRC.mov">
+					</section>
+
+					<!-- <section data-background-image="img/Hillary_Clinton.png">
+					</section> -->
+
+					<section data-background-image="img/Donald_Trump.png">
+					</section>
+
+				</section>
+
+				<section>
+					<section>
+						<h3 class='title'>Candidates' Emotions:</h3>
+						Research shows that women in news media <strong>smile more</strong> than men.
+					</section>
+
+					<section>
+						Representation of emotions:
+						<svg id="graph1" width='600' height='500'></svg>
+
+								<script>
+								function graph1() {
+								var svg = d3.select("#graph1"),
+								    margin = {top: 20, right: 20, bottom: 80, left: 120},
+								    width = +svg.attr("width") - margin.left - margin.right,
+								    height = +svg.attr("height") - margin.top - margin.bottom,
+								    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+								var x0 = d3.scaleBand()
+								    .rangeRound([0, height])
+								    .paddingInner(0.1);
+
+								var x1 = d3.scaleBand()
+								    .padding(0.05);
+
+								var y = d3.scaleLinear()
+								    .rangeRound([width, 0]);
+
+								var yScale = d3.scaleLinear()
+								    .rangeRound([0, width]);
+
+								var z = d3.scaleOrdinal()
+								              // Blue      RED
+								    .range(["#2b8cbe", "#e34a33"]);
+
+								d3.csv("data/imagebox_emotions.csv", function(d, i, columns) {
+								  for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+								  return d;
+								}, function(error, data) {
+								  if (error) throw error;
+
+								  var keys = data.columns.slice(1);
+
+								  x0.domain(data.map(function(d) { return d.Emotion; }));
+								  x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+								  y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+								  yScale.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+
+								  g.append("g")
+								    .selectAll("g")
+								    .data(data)
+								    .enter().append("g")
+								      .attr("transform", function(d) { return "translate(0," + x0(d.Emotion) + ")"; })
+								    .selectAll("rect")
+								    .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+								    .enter().append("rect")
+								      .attr("y", function(d) { return x1(d.key); })
+								      .attr("x", 0)//function(d) { return y(d.value); })
+								      .attr("height", x1.bandwidth())
+								      .attr("width", function(d) { return width - y(d.value); })
+								      .attr("fill", function(d) { return z(d.key); });
+
+								  g.append("g")
+								      .attr("class", "axis")
+								      //.attr("transform", "translate(0," + height + ")")
+								      .call(d3.axisLeft(x0));
+
+								  g.append("g")
+								      .attr("class", "axis")
+								      .attr("transform", "translate(0," + height + ")")
+								      .call(d3.axisBottom(yScale).ticks(null, "s"))
+								    .append("text")
+								      .attr("x", 60)
+								      .attr("y", y(y.ticks().pop()) + 60)
+								      .attr("dy", "0.32em")
+								      .attr("fill", "#000")
+											.attr("font-family", "quicksand")
+											.attr("font-size", 30)
+								      // .attr("font-weight", "bold")
+								      .attr("text-anchor", "start")
+								      .text("% of Images in Image Box");
+
+								  var legend = g.append("g")
+								      .attr("font-family", "quicksand")
+								      .attr("font-size", 20)
+								      .attr("text-anchor", "end")
+								    .selectAll("g")
+								    .data(keys.slice())
+								    .enter().append("g")
+								      .attr("transform", function(d, i) { return "translate(0," + i * 30 + ")"; }); //20
+
+								  legend.append("rect")
+								      .attr("x", width - 19)
+								      .attr("width", 19)
+								      .attr("height", 19)
+								      .attr("fill", z);
+
+								  legend.append("text")
+								      .attr("x", width - 24)
+								      .attr("y", 9.5)
+								      .attr("dy", "0.32em")
+								      .text(function(d) { return d; });
+								});
+							}
+							graph1();
+
+							</script>
+
+					</section>
+
+					<section>
+						<h3 class='title'>Candidates' Emotions:</h3>
+							<li><strong>Clinton's</strong> expressions are mostly <strong>happy</strong></li>
+							<li>Does that mean that Google is biased?</li>
+					</section>
+
+					<section data-background-image="https://media.giphy.com/media/TfS8MAR9ucLHW/giphy.gif" data-background-size="contain">
+					</section>
+
+					<section>
+						<h3 class='title'>Candidates' Emotions:</h3>
+							<li><strong>Trump's</strong> expressions are mostly <strong>neutral</strong></li>
+							<li>Does that mean that Google is biased?</li>
+					</section>
+
+					<section data-background-image="https://media.giphy.com/media/xTiTnHXbRoaZ1B1Mo8/giphy.gif" data-background-size="contain">
+					</section>
+
+				</section>
+
+				<section>
+					<section>
+						<h3 class="title">News Sources</h3>
+					</section>
+
+					<section>
+						Representation of political ideology
+						<svg id="graph2" width='600' height='500'></svg>
+
+								<script>
+								function graph2() {
+								var svg = d3.select("#graph2"),
+										margin = {top: 20, right: 20, bottom: 80, left: 120},
+										width = +svg.attr("width") - margin.left - margin.right,
+										height = +svg.attr("height") - margin.top - margin.bottom,
+										g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+								var x0 = d3.scaleBand()
+										.rangeRound([0, height])
+										.paddingInner(0.1);
+
+								var x1 = d3.scaleBand()
+										.padding(0.05);
+
+								var y = d3.scaleLinear()
+										.rangeRound([width, 0]);
+
+								var yScale = d3.scaleLinear()
+										.rangeRound([0, width]);
+
+								var z = d3.scaleOrdinal()
+															// Blue      RED
+										.range(["#2b8cbe", "#e34a33"]);
+
+								d3.csv("data/imagebox_sources.csv", function(d, i, columns) {
+									for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+									return d;
+								}, function(error, data) {
+									if (error) throw error;
+
+									var keys = data.columns.slice(1);
+
+									x0.domain(data.map(function(d) { return d.Source; }));
+									x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+									y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+									yScale.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+
+									g.append("g")
+										.selectAll("g")
+										.data(data)
+										.enter().append("g")
+											.attr("transform", function(d) { return "translate(0," + x0(d.Source) + ")"; })
+										.selectAll("rect")
+										.data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+										.enter().append("rect")
+											.attr("y", function(d) { return x1(d.key); })
+											.attr("x",0) // function(d) { return y(d.value); })
+											.attr("height", x1.bandwidth())
+											.attr("width", function(d) { return width - y(d.value); })
+											.attr("fill", function(d) { return z(d.key); });
+
+									g.append("g")
+											.attr("class", "axis")
+											// .attr("transform", "translate(0," + height + ")")
+											.call(d3.axisLeft(x0));
+
+									g.append("g")
+											.attr("class", "axis")
+											.attr("transform", "translate(0," + height + ")")
+											.call(d3.axisBottom(yScale).ticks(null, "s"))
+										.append("text")
+											.attr("x", 60)
+											.attr("y", y(y.ticks().pop()) + 60)
+											.attr("dy", "0.32em")
+											.attr("fill", "#000")
+											.attr("font-family", "quicksand")
+											.attr("font-size", 30)
+											.attr("text-anchor", "start")
+											.text("% of Images in Image Box");
+
+									var legend = g.append("g")
+											.attr("font-family", "quicksand")
+											.attr("font-size", 20)
+											.attr("text-anchor", "end") //end
+										.selectAll("g")
+										.data(keys.slice())
+										.enter().append("g")
+											.attr("transform", function(d, i) { return "translate(120," + i * 30 + ")"; }); //"translate(0,"
+
+									legend.append("rect")
+											.attr("x", width - 19)
+											.attr("width", 19)
+											.attr("height", 19)
+											.attr("fill", z);
+
+									legend.append("text")
+											.attr("x", width - 24)
+											.attr("y", 9.5)
+											.attr("dy", "0.32em")
+											.text(function(d) { return d; });
+								});
+							}
+							graph2();
+
+							</script>
+
+					</section>
+
+					<section>
+						<h3 class="title">News Sources</h3>
+						<li><strong>Clinton</strong> image sources <strong>mostly liberal</strong></li>
+						<li><strong>Trump</strong> image sources <strong>mostly liberal</strong></li>
+					</section>
+				</section>
+
+				<section>
+					<h3 class="title">What's the big story?</h3>
+					<li class="fragment fade-up">"Google purposely depicts Clinton as happy more than her male counterpart"</li>
+					or
+					<li class="fragment fade-up">Clinton really <em>is</em> happier in general</li>
+					<br>
+					<li class="fragment fade-up">"Google privileges images from liberal sites"</li>
+					or
+					<li class="fragment fade-up">Liberal sources are more prevelant*?</li>
+					<br>
+					<p class="fragment fade-up"><small>* As indexed by Google</small></p>
+				</section>
+
+				<section>
+					<p>We need an expectation...</p>
+					<p class="fragment fade-up">... a   B A S E L I N E ...</p>
+					<p class="fragment fade-up">A Google U N I V E R S E</p>
+				</section>
+
+				<section>
+					<section>
+						<h3 class="title">Using a Baseline</h3>
+						Assumed Google Images to include all Google's indexed images - image universe!
+						<!-- <li>Google Image Search</li> -->
+						<!-- <li>Time parameters set to same date range as original collection</li>
+						<li>Removed non-candidate images</li>
+						<li>Removed images containing more than one face</li> -->
+					</section>
+
+					<section data-background-video="img/google_image_search_trim.mov">
+					</section>
+
+					<section>
+						Representation of dominant emotion
+						<svg class="two left" id="graph3a" width="400" height="600" style="float: left;"></svg>
+						<svg class="two right" width="400" height="600" id="graph3b" style="margin-left:0px; float:right;"></svg>
+
+						<script>
+
+						  function graph3(options) {
+						      var svg = d3.select(options.elSelector),
+						          margin = {top: 20, right: 0, bottom: 80, left: 110},
+						          width = +svg.attr("width") - margin.left - margin.right,
+						          height = +svg.attr("height") - margin.top - margin.bottom,
+						          g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+						      var x0 = d3.scaleBand()
+						          .rangeRound([0, height])
+						          .paddingInner(0.1);
+
+						      var x1 = d3.scaleBand()
+						          .padding(0.05);
+
+						      var y = d3.scaleLinear()
+						          .rangeRound([width, 0]); // 0, width before in 3a3b
+
+									var yScale = d3.scaleLinear()
+											.rangeRound([0, width]);  // not in JO original
+
+						      var z = d3.scaleOrdinal()
+						                  // Blue    LIGHT BLUE    RED     LIGHT RED
+						          .range(options.colors); //, "#e34a33", "#fdbb84"]);
+
+						      d3.csv(options.dataURL, function(d, i, columns) {
+						        for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+						        return d;
+						      }, function(error, data) {
+						        if (error) throw error;
+
+						        var keys = data.columns.slice(1);
+
+						        x0.domain(data.map(function(d) { return d.Emotion; }));
+						        x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+						        y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+										yScale.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+
+						        g.append("g")
+						          .selectAll("g")
+						          .data(data)
+						          .enter().append("g")
+						            .attr("transform", function(d) { return "translate(0," + x0(d.Emotion) + ")"; })
+						          .selectAll("rect")
+						          .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+						          .enter().append("rect")
+						            .attr("y", function(d) { return x1(d.key); })
+						            .attr("x", 0)
+						            .attr("height", x1.bandwidth())
+						            .attr("width", function(d) { return width - y(d.value); })
+						            .attr("fill", function(d) { return z(d.key); });
+
+						        g.append("g")
+						            .attr("class", "axis")
+						            .call(d3.axisLeft(x0));
+
+						        g.append("g")
+						            .attr("class", "axis2")
+						            .attr("font-family", "quicksand")
+						            .attr("transform", "translate(0," + height + ")")
+						            .call(d3.axisBottom(yScale).ticks(null, "s"))
+						          .append("text")
+						            .attr("x", 60)
+						            .attr("y", y(y.ticks().pop()) + 60)
+						            .attr("dy", "0.32em")
+						            .attr("fill", "#000")
+												.attr("font-family", "quicksand")
+												.attr("font-size", 30)
+						            .attr("text-anchor", "start")
+						            .text("% of Images");
+
+						        var legend = g.append("g")
+						            .attr("font-family", "quicksand")
+						            .attr("font-size", 20)
+						            .attr("text-anchor", "end")
+						          .selectAll("g")
+						          .data(keys.slice())
+						          .enter().append("g")
+						            .attr("transform", function(d, i) { return "translate(0," + i * 30 + ")"; });
+
+						        legend.append("rect")
+						            .attr("x", width - 19)
+						            .attr("width", 19)
+						            .attr("height", 19)
+						            .attr("fill", z);
+
+						        legend.append("text")
+						            .attr("x", width - 24)
+						            .attr("y", 9.5)
+						            .attr("dy", "0.32em")
+						            .text(function(d) { return d; });
+						      });
+						  }
+
+						    graph3({ // call graph() with HC options object
+						      elSelector: '#graph3a',
+						      dataURL: "data/imagebox_emotions_all_HC.csv",
+						      colors: ["#2b8cbe", "#a6bddb"]
+						    });
+
+						    graph3({ // call graph() with DT options object
+						      elSelector: '#graph3b',
+						      dataURL: "data/imagebox_emotions_all_DT.csv",
+						      colors: ["#e34a33", "#fdbb84"]
+						    });
+						    </script>
+					</section>
+
+					<section>
+					<h3 class="title">Automated image source political bias ratings</h3>
+						<li>Allsides + Facebook</li>
+						<h3 class="title">+ Manual ratings</h3>
+						<li>MondoTimes + my assessment</li>
+					</section>
+
+					<section class="twographs">
+						Representation of political ideology:
+						<svg class="two left" id="graph4a" width="400" height="600" style="float: left;"></svg>
+						<svg class="two right" width="400" height="600" id="graph4b" style="margin-left:0px; float:right;"></svg>
+
+						<script>
+
+							function graph4(options) {
+									var svg = d3.select(options.elSelector),
+											margin = {top: 20, right: 0, bottom: 80, left: 95},
+											width = +svg.attr("width") - margin.left - margin.right,
+											height = +svg.attr("height") - margin.top - margin.bottom,
+											g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+									var x0 = d3.scaleBand()
+											.rangeRound([0, height])
+											.paddingInner(0.1);
+
+									var x1 = d3.scaleBand()
+											.padding(0.05);
+
+									var y = d3.scaleLinear()
+											.rangeRound([width, 0]);
+
+									var yScale = d3.scaleLinear()
+											.rangeRound([0, width]);
+
+									var z = d3.scaleOrdinal()
+											.range(options.colors);
+
+									d3.csv(options.dataURL, function(d, i, columns) {
+										for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+										return d;
+									}, function(error, data) {
+										if (error) throw error;
+
+										var keys = data.columns.slice(1);
+
+										x0.domain(data.map(function(d) { return d.Source; }));
+										x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+										y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+										yScale.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice(); // this line no in orig 3a3b
+
+										g.append("g")
+											.selectAll("g")
+											.data(data)
+											.enter().append("g")
+												.attr("transform", function(d) { return "translate(0," + x0(d.Source) + ")"; })
+											.selectAll("rect")
+											.data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+											.enter().append("rect")
+												.attr("y", function(d) { return x1(d.key); })
+												.attr("x", 0)
+												.attr("height", x1.bandwidth())
+												.attr("width", function(d) { return width - y(d.value); })// y(d.value); })
+												.attr("fill", function(d) { return z(d.key); });
+
+										g.append("g")
+												.attr("class", "axis")
+												.call(d3.axisLeft(x0));
+
+										g.append("g")
+												.attr("class", "axis2")
+												.attr("font-family", "quicksand")
+												.attr("transform", "translate(0," + height + ")")
+												.call(d3.axisBottom(yScale).ticks(null, "s"))
+											.append("text")
+												.attr("x", 60) // 62
+												.attr("y", y(y.ticks().pop()) + 60) //30
+												.attr("dy", "0.32em")
+												.attr("fill", "#000")
+												.attr("font-family", "quicksand")
+												.attr("font-size", 30)
+												.attr("text-anchor", "start")
+												.text("% of Images");
+
+										var legend = g.append("g")
+												.attr("font-family", "quicksand")
+												.attr("font-size", 20)
+												.attr("text-anchor", "end")
+											.selectAll("g")
+											.data(keys.slice())
+											.enter().append("g")
+											.attr("transform", function(d, i) { return "translate(0," + i * 30 + ")"; });  // 0, 30
+
+										legend.append("rect")
+												.attr("x", width - 19)
+												.attr("width", 19)
+												.attr("height", 19)
+												.attr("fill", z);
+
+										legend.append("text")
+												.attr("x", width - 24)
+												.attr("y", 9.5)
+												.attr("dy", "0.32em")
+												.text(function(d) { return d; });
+									});
+							}
+
+								graph4({ // call graph() with HC options object
+									elSelector: '#graph4a',
+									dataURL: "data/imagebox_sources_all_HC.csv",
+									colors: ["#2b8cbe", "#a6bddb"]
+								});
+
+								graph4({ // call graph() with DT options object
+									elSelector: '#graph4b',
+									dataURL: "data/imagebox_sources_all_DT.csv",
+									colors: ["#e34a33", "#fdbb84"]
+								});
+								</script>
+					</section>
+				</section>
+
+				<section>
+					<h3 class="title">What's the big story, now?</h3>
+					<li class="fragment fade-up">Representation of candidates' emotions in the image box ≠ Google's "universe".</li>
+					<li class="fragment fade-up">Distribution of news sources across ideology in the image box ≠ Google's "universe".</li>
+					<br>
+					<li class="fragment fade-up"><strong>Bias</strong> may have been <strong>introduced</strong> by Google's image selection algorithm.</li>
+				</section>
+
+				<!-- <section data-background-iframe='http://algorithmtips.org' data-background-interactive>
+				</section> -->
+
+				<section>
+					<h3 class="title">Limitations</h3>
+					<li class="fragment fade-up"><strong>Emotion: </strong>Bias may also be introduced by photogs or editors</li>
+					<li class="fragment fade-up"><strong>Emotion: </strong>May be bias introduced by Microsoft Emotion API</li>
+					<li class="fragment fade-up"><strong>Emotion: </strong>Not all baseline images were emotion-rated.</li>
+					<li class="fragment fade-up"><strong>Sources: </strong>Not all baseline sources were bias-rated / rate-able.</li>
+					<li class="fragment fade-up"><strong>Sources: </strong>Not all sources were represented in the baseline.</li>
+				</section>
+
+				<section>
+					<h3 class="title">Thank you!</h3>
+					<p class="thankyou"><a target="_blank" href="https://twitter.com/_JAStark">@_JAStark</a></p>
+					<p class="thankyou">starkja@umd.edu</p>
+					<p class="thankyou"><a target="_blank" href="http://researchrepository.ucd.ie/bitstream/handle/10197/8634/DataJ%20Conf%20Proceedings%20Final.pdf?sequence=1">
+						Conference abstract here: "Using Baselines for Algorithm Audits", pg8</a></p>
+					<p class="title">Code on GitHub:</p>
+					<p class="thankyou"><a target="_blank" href="https://github.com/comp-journalism/Baseline_Problem_for_Algorithm_Audits">
+						comp-journalism/Baseline_Problem_for_Algorithm_Audits</a></p>
+					<img src='img/logo.jpg' style="width: 10%; height: 10%; opacity:0.7; margin-right: 1em"/><img src='img/merrill.jpg' style="width: 10%; height: 10	%; opacity:0.7"/>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
