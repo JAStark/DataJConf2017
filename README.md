@@ -1,7 +1,7 @@
 #  "Using Baselines for Algorithm Audits" presented at [European Data and Computational Journalism Conference, 2017](http://datajconf.com)
 
 ## By [Jennifer A Stark](https://github.com/JAStark) and [Nick Diakopoulos](http://www.nickdiakopoulos.com)
-- [Conference abstract](http://researchrepository.ucd.ie/bitstream/handle/10197/8634/DataJ%20Conf%20Proceedings%20Final.pdf?sequence=1)
+- [Conference abstract](http://www.nickdiakopoulos.com/wp-content/uploads/2011/07/EDCJC_Extended_Abstract_ImageBaslines-FINAL.pdf)
 - [Slides](https://jastark.github.io/DataJConf2017/)
 - [Code](https://github.com/comp-journalism/Baseline_Problem_for_Algorithm_Audits)
 
